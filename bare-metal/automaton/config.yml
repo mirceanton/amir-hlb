@@ -1,0 +1,65 @@
+---
+- name: Configure Automaton
+  hosts: automaton
+  become: true
+
+  pre_tasks:
+    - name: Update and Upgrade System
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Utility Packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: "{{ apt_utility_state }}"
+      loop: "{{ apt_utility_packages }}"
+
+  roles:
+    - role: mirceanton.ansible
+    - role: mirceanton.terraform
+    - role: mirceanton.packer
+    - role: mirceanton.docker
+    - role: mirceanton.anacron
+
+  tasks:
+    - name: Create required directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "u=rwx,g=rx,o="
+        owner: root
+        group: root
+      loop:
+        - "{{ service_data_dir }}"
+        - "{{ backup_dir }}"
+        - "{{ scripts_dir }}"
+        - /opt/credentials/traefik
+        - /opt/credentials/vault
+        - /opt/credentials/portainer
+        - /opt/credentials/minio
+        - /opt/credentials/jenkins
+        - /opt/credentials/gitlab
+
+    - name: Set ACL for directory
+      ansible.posix.acl:
+        path: "{{ item }}"
+        etype: group
+        entity: developer
+        permissions: rwx
+        state: present
+        recursive: true
+      loop:
+        - "{{ service_data_dir }}"
+        - "{{ backup_dir }}"
+        - "{{ scripts_dir }}"
+        - /opt/credentials
+
+    - name: Copy backup script to location
+      ansible.builtin.copy:
+        src: files/automaton-backup.sh
+        dest: "{{ backup_script_path }}"
+        owner: root
+        group: root
+        mode: "u=rwx,g=rw,o="

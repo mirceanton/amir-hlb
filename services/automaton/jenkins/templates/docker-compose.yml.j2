@@ -1,0 +1,39 @@
+{% import "macros.j2" as templates with context %}
+---
+version: '{{ docker_compose_version }}'
+
+services:
+  app:
+    image: {{ jenkins_stack_image_name }}:{{ jenkins_stack_image_tag }}
+
+    volumes:
+      - {{ jenkins_stack_data_dir_path }}/data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    
+    environment:
+      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+      JENKINS_OPTS: --argumentsRealm.roles.user="{{ jenkins_admin_user }}" --argumentsRealm.passwd.admin="{{ jenkins_admin_pass }}" --argumentsRealm.roles.admin=admin
+    
+    networks:
+      - {{ docker_proxy_network }}
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:8080/login || exit 1"]
+      interval: {{ docker_healthcheck_interval }}
+      timeout: {{ docker_healtcheck_timeout }}
+      retries: {{ docker_healthcheck_retries }}
+
+    deploy:
+      mode: replicated
+      replicas: 1
+
+      {{ templates.restart_policy() | indent(6) }}
+
+      labels:
+        # Enable traefik to proxy this service
+        - 'traefik.enable=true'
+        {{ templates.traefik_labels('jenkins', '8080') | indent(8) }}
+
+networks:
+  {{ docker_proxy_network }}:
+    external: true

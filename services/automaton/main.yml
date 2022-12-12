@@ -1,0 +1,25 @@
+---
+- name: Deploy Automaton Services
+  hosts: automaton
+  become: true
+
+  pre_tasks:
+    - name: Initialize The Docker Swarm
+      community.docker.docker_swarm:
+        state: "{{ docker_swarm_state }}"
+        advertise_addr: "{{ docker_swarm_iface }}"
+
+    - name: Create the Overlay Network
+      community.docker.docker_network:
+        name: "{{ docker_proxy_network }}"
+        scope: swarm
+        driver: overlay
+    
+  tasks:
+    - ansible.builtin.import_tasks: traefik/deploy.yml
+    - ansible.builtin.import_tasks: portainer/deploy.yml
+    - ansible.builtin.import_tasks: minio/deploy.yml
+    - ansible.builtin.import_tasks: vault/deploy.yml
+    - ansible.builtin.import_tasks: jenkins/deploy.yml
+    - ansible.builtin.import_tasks: gitlab/deploy.yml
+    - ansible.builtin.import_tasks: homer/deploy.yml

@@ -1,0 +1,41 @@
+{% import "macros.j2" as templates with context %}
+---
+version: '{{ docker_compose_version }}'
+
+services:
+  app:
+    image: {{ minio_stack_image_name }}:{{ minio_stack_image_tag }}
+    command: minio server /data --console-address ":9001"
+
+    volumes:
+      - {{ minio_stack_data_dir_path }}/data:/data
+
+    networks:
+      - {{ docker_proxy_network }}
+
+    environment:
+      MINIO_ROOT_USER: {{ minio_root_user }}
+      MINIO_ROOT_PASSWORD: {{ minio_root_pass }}
+      MINIO_BROWSER_REDIRECT_URL: https://{{ minio_stack_name }}-console.{{ fqdn }}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: {{ docker_healthcheck_interval }}
+      timeout: {{ docker_healtcheck_timeout }}
+      retries: {{ docker_healthcheck_retries }}
+
+    deploy:
+      mode: replicated
+      replicas: 1
+
+      {{ templates.restart_policy() | indent(6) }}
+
+      labels:
+        # Enable traefik to proxy this service
+        - 'traefik.enable=true'
+        {{ templates.traefik_labels('minio', '9000') | indent(8) }}
+        {{ templates.traefik_labels('minio-console', '9001') | indent(8) }}
+
+networks:
+  {{ docker_proxy_network }}:
+    external: true

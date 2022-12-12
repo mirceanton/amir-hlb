@@ -1,0 +1,69 @@
+---
+title: "Automaton"
+subtitle: "Dashboard"
+logo: assets/icons/dickbutt.svg
+
+footer: ""
+
+columns: 3
+
+defaults:
+  layout: columns
+  colorTheme: dark
+
+message:
+  style: is-info
+  title: Google
+  icon: fab fa-google
+  content: '<form action="https://google.com/search" method="get"><input type="text" name="q" placeholder="Search" style="width: 100%; padding: 8px; border-radius: 6px" spellcheck="false" autofocus="true" onkeydown="handleKeyPress(event)"/></form>'
+
+links:
+  - name: Repo
+    icon: fab fa-github
+    url: https://github.com/mirceanton/amir-hlb
+  - name: Docs
+    icon: fas fa-book
+    url: https://amir-hlb.netlify.app
+
+services:
+  - name: Management
+    icon: fa fa-gear
+    items:
+      - name: Portainer
+        url: https://{{ portainer_stack_name }}.{{ fqdn }}
+        subtitle: Container Management
+        target: "_blank"
+        logo: assets/icons/portainer.svg
+      - name: Traefik
+        url: https://{{ traefik_stack_name }}.{{ fqdn }}
+        subtitle: Reverse Proxy Dashboard
+        target: "_blank"
+        logo: assets/icons/traefik.svg
+
+  - name: CI/CD
+    icon: fa fa-repeat
+    items:
+      - name: GitLab
+        url: https://{{ gitlab_stack_name }}.{{ fqdn }}
+        subtitle: Source Code Management
+        target: "_blank"
+        logo: assets/icons/gitlab.svg
+      - name: Jenkins
+        url: https://{{ jenkins_stack_name }}.{{ fqdn }}
+        subtitle: Automation Server
+        target: "_blank"
+        logo: assets/icons/jenkins.svg
+
+  - name: Storage
+    icon: fa fa-box-archive
+    items:
+      - name: Vault
+        url: https://{{ vault_stack_name }}.{{ fqdn }}
+        subtitle: Secrets Storage
+        target: "_blank"
+        logo: assets/icons/vault.svg
+      - name: MinIO
+        url: https://{{ minio_stack_name }}-console.{{ fqdn }}
+        subtitle: S3 Storage
+        target: "_blank"
+        logo: assets/icons/minio.svg
